@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tangbaobao.mapper.UserDao">
+    <select id="selectAll" resultType="com.tangbaobao.pojo.User">
+        SELECT *
+        FROM
+            `user`
+    </select>
+
+    <resultMap id="mapResult" type="hashMap">
+        <result property="key" column="pro_id"/>
+        <collection property="value" ofType="User">
+            <result column="username" property="username"/>
+            <result column="user_id" property="id"/>
+        </collection>
+    </resultMap>
+
+    <select id="getUser" resultMap="mapResult">
+        SELECT
+        u.id user_id,
+        o.pro_id,
+        u.username,
+        u.sex
+        FROM
+        `user` u,
+        orders o
+        where
+        u.id = o.user_id
+        and
+        o.pro_id in
+        <foreach collection="set" open="(" close=")" separator="," item="oid">
+            #{oid}
+        </foreach>
+    </select>
+</mapper>

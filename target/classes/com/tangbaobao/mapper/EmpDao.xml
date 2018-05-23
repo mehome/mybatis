@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tangbaobao.mapper.Empdao">
+    <!--增加一个员工-->
+    <insert id="add" parameterType="emp" useGeneratedKeys="true" keyProperty="empId">
+        INSERT INTO
+            `emp`.`tb_emp` (`emp_id`, `empName`, `empPassword`, `birthday`, `email`)
+        VALUES
+            (#{empId}, #{empName}, #{empPassword}, #{birthday}, #{email})
+    </insert>
+    <insert id="addExpByEmp" parameterType="Exp">
+        INSERT INTO `emp`.`tb_exp` (`exp_id`, `studyRecord`, `school`, `profession`, `startTime`, `endTime`, `emp_id`)
+        VALUES
+            (#{expId}, #{studyRecord}, #{school}, #{profession}, #{startTime}, #{endTime}, #{emp.empId});
+    </insert>
+
+    <!--更新员工-->
+    <update id="updateByEmp" parameterType="emp">
+
+        UPDATE `emp`.`tb_emp`
+        SET
+        <if test="empName != null and empName !=''">
+            `empName`     = #{empName},
+        </if>
+        <if test="empPassword != null and empPassword !=''">
+            `empPassword` = #{empPassword},
+        </if>
+        <if test="birthday != null">
+            `birthday`    = #{birthday},
+        </if>
+        <if test="email != null and email !=''">
+            `email`       = #{email}
+        </if>
+        WHERE
+            `emp_id` = #{empId}
+    </update>
+
+    <!--   &lt;!&ndash;根据教育经历更细&ndash;&gt;
+       <update id="updateByExp" parameterType="exp">
+
+       </update>
+   -->
+    <!--根据EmpId删除员工-->
+    <delete id="deleteByEmpId" parameterType="String">
+        DELETE
+        FROM tb_emp
+        WHERE emp_id = #{empId}
+    </delete>
+
+    <!--根据员工教育经历删除员工-->
+    <delete id="deleteByExpId" parameterType="String">
+        DELETE
+        FROM tb_exp
+        WHERE emp_id = #{expId}
+    </delete>
+    <!--查询所有员工(包含，每个员工的教育经历)-->
+    <resultMap id="emp" type="Emp">
+        <id property="empId" column="emp_id"/>
+        <result property="empName" column="empName"/>
+        <result property="birthday" column="birthday"/>
+        <!--一对多-->
+        <collection property="expList" ofType="Exp">
+            <id property="expId" column="exp_id"/>
+            <result property="studyRecord" column="studyRecord"/>
+            <result property="school" column="school"/>
+            <result property="profession" column="profession"/>
+            <result property="startTime" column="startTime"/>
+            <result property="endTime" column="endTime"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectAll" resultMap="emp">
+        SELECT *
+        FROM tb_emp m, tb_exp x
+
+        WHERE
+            m.emp_id = x.emp_id
+    </select>
+
+
+    <!--根据员工id查询-->
+    <select id="selectEmpByID" parameterType="int" resultMap="emp">
+        SELECT *
+        FROM
+            tb_emp m
+            LEFT JOIN
+            tb_exp e
+                ON
+                    m.emp_id = e.emp_id
+                    AND m.emp_id = #{empid}
+    </select>
+
+
+    <resultMap id="exp" type="Exp">
+        <id column="exp_id" property="expId"/>
+        <result column="studyRecord" property="studyRecord"/>
+        <result column="school" property="school"/>
+        <result column="profession" property="profession"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <!--多对一-->
+        <association property="emp" javaType="Emp">
+            <id property="empId" column="emp_id"/>
+            <result property="empName" column="empName"/>
+            <result property="birthday" column="birthday"/>
+        </association>
+    </resultMap>
+
+
+    <!--根据学校名查询这个员工-->
+    <select id="selectEmpBySchool" parameterType="String" resultMap="exp">
+        SELECT *
+        FROM
+
+            tb_exp x
+            LEFT JOIN
+            tb_emp m
+                ON x.school
+                   LIKE '%' #{empName} '%'
+    </select>
+</mapper>
